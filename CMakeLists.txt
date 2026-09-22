@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Executable for the main static analyzer tool
 add_executable(idealloc
     src/main.cpp
+    lib/Instance.cpp
 )
 
 # Specify include directories directly on the target
