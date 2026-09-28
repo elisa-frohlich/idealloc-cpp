@@ -26,13 +26,15 @@ private:
     mutable std::optional<std::size_t> load;
     mutable std::optional<std::pair<std::size_t, std::size_t>> min_max_height;
 
-    static Info merge(Instance &_this, Instance &_that);
+    static Info merge(const Instance &_this, const Instance &_that);
 };
 
 class Instance {
 public:
     Instance() = default;
-    Instance(JobSet jobs) : jobs(jobs) {}
+    explicit Instance(JobSet jobs) : jobs(std::move(jobs)) {}
+    Instance(JobSet jobs, Info info) :
+        jobs(std::move(jobs)), info(std::move(info)) {}
 
     std::unordered_map<std::size_t, Instance>
     make_buckets(std::shared_ptr<Instance> source, double epsilon);
@@ -43,16 +45,16 @@ public:
 
     std::pair<std::size_t, std::size_t> get_horizon();
 
-    std::pair<std::size_t, std::size_t> min_max_height();
+    std::pair<std::size_t, std::size_t> min_max_height() const;
 
     std::pair<Instance, Instance> split_by_height(std::size_t ceil_);
 
-    std::pair<JobSet, std::unordered_map<std::size_t, Instance>>
-    split_by_liveness(std::set<std::size_t>& pts);
+    static std::pair<JobSet, std::unordered_map<std::size_t, Instance>>
+    split_by_liveness(Instance self, std::set<std::size_t>& pts);
 
     std::uint32_t total_originals_boxed();
 
-    std::shared_ptr<Instance> merge_with(Instance other);
+    std::shared_ptr<Instance> merge_with(Instance other) const;
 
     void merge_via_ref(Instance other);
 
