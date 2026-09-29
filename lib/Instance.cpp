@@ -119,7 +119,7 @@ std::pair<Instance, Instance> Instance::split_by_height(std::size_t ceil_) {
 std::pair<JobSet, std::unordered_map<std::size_t, Instance>>
 Instance::split_by_liveness(Instance self, std::set<std::size_t>& pts)
 {
-    std::unordered_map<std::size_t, Instance> x_is_base;
+    std::unordered_map<std::size_t, JobSet> x_is_base;
     JobSet live;
     
     std::sort(self.jobs.begin(), self.jobs.end(),
@@ -129,13 +129,61 @@ Instance::split_by_liveness(Instance self, std::set<std::size_t>& pts)
     
     std::size_t idx = 0;
 
+    // Rust: let mut pts_iter = pts.iter().map(|x| *x).enumerate().peekable();
+    // C++: manual iteration; enumerate -> `q` counter; peekable -> std::next.
     std::size_t q = 0;
     for (auto it = pts.begin(); it != pts.end(); ++it, ++q) {
         const std::size_t t_q = *it;
         auto next_it = std::next(it);
+        if (next_it == pts.end()) break;
+
+        const std::size_t t_q_next = *next_it;
+        const std::size_t q_next = q+1;
+
+        bool exit_all = false;
+
+        if (q_next == pts.size() - 1) {
+            // Last segment: everything goes into x_is_base[q].
+            while (idx < self.jobs.size()) {
+                x_is_base[q].push_back(self.jobs[idx]);
+                ++idx;
+            }
+            break;
+        } else {
+            while (true) {
+                if (idx < self.jobs.size()) {
+                    const auto& j = self.jobs[idx];
+                    if (j->lives_within(std::make_pair(t_q, t_q_next))) {
+                        ++idx;
+                        x_is_base[q].push_back(j);
+                    } else if (j->is_live_at(t_q_next)) {
+                        ++idx;
+                        live.push_back(j);
+                    } else {
+                        // Rust: continue 'points
+                        // Just break the inner loop; the outer for-loop
+                        // advances to the next point naturally.
+                        break;
+                    }
+                } else {
+                    // Rust: break 'points
+                    exit_all = true;
+                    break;
+                }
+            }
+        }
+
+        if (exit_all) break;
     }
 
-    return {live, x_is_base};
+    // Rust: x_is_base.into_iter().map(|(k, v)| (k, Self::new(v))).collect()
+    std::unordered_map<std::size_t, Instance> res;
+    res.reserve(x_is_base.size());
+    for (auto& [k, v] : x_is_base) {
+        res.emplace(k, Instance(std::move(v)));
+    }
+
+    return {std::move(live), std::move(res)};
 }
 
 /// Counts how many of the *ORIGINAL* buffers have
