@@ -3,7 +3,7 @@
 
 #include <set>
 #include <span>
-#include "Helper.h"
+#include "Event.h"
 #include "Job.h"
 
 namespace jobset {

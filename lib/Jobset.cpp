@@ -3,7 +3,8 @@
 #include <cmath>
 #include <iterator>
 #include <unordered_map>
-#include "JobSet.h"
+#include "Jobset.h"
+#include "Helper.h"
 
 namespace jobset {
 /// Initializes a JobSet with a given set of jobs.

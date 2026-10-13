@@ -29,8 +29,10 @@ private:
     static Info merge(const Instance &_this, const Instance &_that);
 };
 
-class Instance {
-public:
+struct Instance {
+    JobSet jobs;
+    Info info;
+
     Instance() = default;
     explicit Instance(JobSet jobs) : jobs(std::move(jobs)) {}
     Instance(JobSet jobs, Info info) :
@@ -59,9 +61,7 @@ public:
     void merge_via_ref(Instance other);
 
     std::tuple<double, double, double, double> ctrl_prelude();
-private:
-    JobSet jobs;
-    Info info;
+    
 };
 
 #endif // INSTANCE_H

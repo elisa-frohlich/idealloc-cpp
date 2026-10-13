@@ -2,7 +2,7 @@
 #include <cassert>
 #include <cmath>
 #include "Instance.h"
-#include "JobSet.h"
+#include "Jobset.h"
 
 Info Info::merge(const Instance &_this, const Instance &_that) {
     Info res = {std::nullopt, std::nullopt};

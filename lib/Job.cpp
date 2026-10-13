@@ -2,7 +2,7 @@
 #include <cassert>
 #include <limits>
 #include "Job.h"
-#include "JobSet.h"
+#include "Jobset.h"
 
 bool Job::overlaps_with(const Job &other) {
     return !(this->birth >= other.death || other.birth >= this->death);
@@ -45,15 +45,16 @@ Job Job::new_box(JobSet contents_, std::size_t height) {
     std::uint32_t id_ = NEXT_ID.fetch_sub(1, std::memory_order_relaxed);
     assert(id_ != std::numeric_limits<std::uint32_t>::max()/2 + 1);
 
-    Job new_job;
-    new_job.size = height;
-    new_job.birth = birth_;
-    new_job.death = death_;
-    new_job.req_size = height;
-    new_job.alignment = std::nullopt;
-    new_job.contents = contents_;
-    new_job.originals_boxed = originals_boxed_;
-    new_job.id = id_;
+    Job new_job{
+        .size = height,
+        .birth = birth_,
+        .death = death_,
+        .req_size = height,
+        .alignment = std::nullopt,
+        .contents = contents_,
+        .originals_boxed = originals_boxed_,
+        .id = id_,
+    };
 
     return new_job;
 }

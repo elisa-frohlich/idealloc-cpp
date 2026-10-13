@@ -24,7 +24,7 @@ public:
     uint32_t originals_boxed;
     uint32_t id;
 
-    Job() = default;
+    // Job() = default;
 
 
     bool overlaps_with(const Job &other);
@@ -53,7 +53,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Job& j) {
         return os << "Job {id: " << j.id <<
-                     ", birth: " << j.birth <<
+                     ", lifetime: [" << j.birth << ", " << j.death << "]" <<
                      ", size: " << j.size << "}";
     }
 };
