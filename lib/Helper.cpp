@@ -215,3 +215,18 @@ std::size_t T2Control::gen_crit(Instance& jobs,
     std::uniform_int_distribution<std::size_t> dist(0, pts.size() - 1);
     return pts[dist(rng)];
 }
+
+JobSet strip_boxin(std::vector<std::priority_queue<VertStripJob>> verticals,
+                   std::vector<std::priority_queue<HorStripJob>> horizontals,
+                   std::size_t group_size,
+                   std::size_t box_size)
+{
+    JobSet res_set = strip_box_core(std::move(verticals), group_size, box_size);
+
+    JobSet more = strip_box_core(std::move(horizontals), group_size, box_size);
+    res_set.insert(res_set.end(),
+                   std::make_move_iterator(more.begin()),
+                   std::make_move_iterator(more.end()));
+
+    return res_set;
+}

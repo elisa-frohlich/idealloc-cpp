@@ -256,7 +256,126 @@ struct T2Control {
                                 std::size_t right);
 };
 
+///---START LEMMA 1 HELPERS
 
+/// Helper struct for Lemma 1. "Vertical strips" are going
+/// to be stored into [BinaryHeap]s. Since [BinaryHeap] is
+/// a max-heap, we compare 2 jobs' deaths to order them.
+struct VertStripJob {
+    std::shared_ptr<Job> job;
+
+    explicit VertStripJob(std::shared_ptr<Job> j) : job(std::move(j)) {}
+
+    // Rust: fn get_inner_job(self) -> Arc<Job>
+    //   Consumes self, moves out `job`. The `&&` qualifier restricts this to
+    //   rvalues, matching Rust's by-value `self`.
+    std::shared_ptr<Job> get_inner_job() && { return std::move(job); }
+
+    // Rust: Ord -- self.job.death.cmp(&other.job.death)
+    bool operator<(const VertStripJob& other) const {
+        return job->death < other.job->death;
+    }
+
+    // Rust: PartialEq -- self.job == other.job
+    bool operator==(const VertStripJob& other) const {
+        return *job == *other.job;
+    }
+};
+
+/// Helper struct for Lemma 1. "Vertical strips" are going
+/// to be stored into [BinaryHeap]s. Since [BinaryHeap] is
+/// a max-heap, we compare 2 jobs in reverse to order them.
+struct HorStripJob {
+    std::shared_ptr<Job> job;
+
+    explicit HorStripJob(std::shared_ptr<Job> j) : job(std::move(j)) {}
+
+    std::shared_ptr<Job> get_inner_job() && { return std::move(job); }
+
+    // Rust: Ord -- other.job.cmp(&self.job)
+    //   Reversed relative to Job's order. In C++: *this < other iff other.job < self.job.
+    bool operator<(const HorStripJob& other) const {
+        return *other.job < *job;
+    }
+
+    bool operator==(const HorStripJob& other) const {
+        return *job == *other.job;
+    }
+};
+
+/// Helper function for Lemma 1. Splits all inner
+/// strips into boxes containing `group_size` jobs each.
+/// 
+/// The real size of each box is `box_size`.
+template <typename T>
+JobSet strip_box_core(std::vector<std::priority_queue<T>> strips,
+                      std::size_t group_size,
+                      std::size_t box_size)
+{
+    JobSet res;
+    JobSet buf;
+
+    for (auto& strip : strips) {
+        std::size_t stripped = 0;
+        while (!strip.empty()) {
+            // Rust: strip.pop().unwrap().get_inner_job()
+            // priority_queue::top() returns a const ref, so copy then pop.
+            T top = strip.top();
+            strip.pop();
+
+            buf.push_back(std::move(top).get_inner_job());
+            ++stripped;
+
+            if (stripped == group_size || strip.empty()) {
+                // Rust: res.push(Arc::new(Job::new_box(buf, box_size)))
+                res.push_back(std::make_shared<Job>(
+                    Job::new_box(std::move(buf), box_size)));
+                buf.clear();          // keep capacity; Rust `buf = vec![]` reallocates
+                stripped = 0;
+            }
+        }
+    }
+
+    return res;
+}
+
+/// Helper function for Lemma 1. Splits the jobs
+/// of a single strip into boxes containing `group_size` jobs each.
+/// 
+/// The real size of each box is `box_size`.
+JobSet strip_boxin(std::vector<std::priority_queue<VertStripJob>> verticals,
+                   std::vector<std::priority_queue<HorStripJob>> horizontals,
+                   std::size_t group_size,
+                   std::size_t box_size);
+
+/// Helper function for Lemma 1. Selects `to_take`
+/// jobs from a given iterator.
+template <typename T>
+std::priority_queue<T>
+strip_cuttin(std::vector<std::pair<std::uint32_t, std::shared_ptr<Job>>>& source,
+             std::unordered_map<std::uint32_t, std::shared_ptr<Job>>& mirror,
+             std::size_t to_take)
+{
+    std::priority_queue<T> res;
+    std::size_t stripped = 0;
+
+    while (stripped < to_take && !source.empty()) {
+        // Rust: let (id, cut_job) = source.pop().unwrap();
+        auto [id, cut_job] = std::move(source.back());
+        source.pop_back();
+
+        // Rust: mirror.shift_remove(&id).unwrap();
+        mirror.erase(id);
+
+        // Rust: res.push(New::new(cut_job));
+        res.push(T(std::move(cut_job)));
+        ++stripped;
+    }
+
+    return res;
+}
+
+///---END LEMMA 1 HELPERS
 
 template <typename T>
 JobSet read_from_path(std::filesystem::path file_path, std::size_t shift) {
