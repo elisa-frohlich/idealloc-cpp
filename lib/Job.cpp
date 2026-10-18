@@ -1,5 +1,6 @@
 #include <atomic>
 #include <cassert>
+#include <iostream>
 #include <limits>
 #include "Job.h"
 #include "Jobset.h"
@@ -25,6 +26,8 @@ Job Job::new_box(JobSet contents_, std::size_t height) {
     static std::atomic<std::uint32_t> NEXT_ID{
         std::numeric_limits<std::uint32_t>::max()
     };
+
+    // std::cerr << "new_box: contents_=" << contents_ << " height=" << height << "\n";
 
     assert(jobset::get_load(contents_) <= height && "Bad boxing requested");
     std::size_t birth_ = std::numeric_limits<std::size_t>::max();
@@ -61,7 +64,7 @@ Job Job::new_box(JobSet contents_, std::size_t height) {
 
 /// Returns `true` if the job is live at moment `t`.
 bool Job::is_live_at(std::size_t t) {
-    return this->birth < t && this->birth > t;
+    return this->birth < t && this->death > t;
 }
 
 /// Returns `true` if job's lifetime is a subset of `space`.

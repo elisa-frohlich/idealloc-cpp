@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <utility>
 #include "Job.h"
+#include "Jobset.h"
+#include "algo/Placement.h"
 
 class Instance;
 
@@ -38,7 +40,7 @@ struct Instance {
     Instance(JobSet jobs, Info info) :
         jobs(std::move(jobs)), info(std::move(info)) {}
 
-    std::unordered_map<std::size_t, Instance>
+    static std::unordered_map<std::size_t, Instance>
     make_buckets(std::shared_ptr<Instance> source, double epsilon);
 
     bool check_boxed_originals(std::uint32_t target);
@@ -62,6 +64,19 @@ struct Instance {
 
     std::tuple<double, double, double, double> ctrl_prelude();
     
+    std::size_t place(
+        const std::pair<InterferenceGraph, PlacedJobRegistry>& ig,
+        std::uint32_t iters_done,
+        std::size_t makespan_lim,
+        std::uint32_t dumb_id,
+        std::size_t start_addr);
+
+    friend std::ostream& operator<<(std::ostream& os, Instance ins) {
+        auto [h_min, h_max] = ins.min_max_height();
+        return os << "Instance {max load: " << jobset::get_load(ins.jobs) <<
+            ", min-max height: [" << h_min << ", " << h_max << "]" <<
+            ", num jobs: " << ins.jobs.size() << "}";
+    }
 };
 
 #endif // INSTANCE_H

@@ -1,8 +1,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <iostream>
 #include "Instance.h"
 #include "Jobset.h"
+#include <iomanip>
 
 Info Info::merge(const Instance &_this, const Instance &_that) {
     Info res = {std::nullopt, std::nullopt};
@@ -62,7 +64,7 @@ std::tuple<double, double, double, bool> Instance::get_safety_info(double epsilo
     auto [h_min, h_max] = min_max_height();
     auto [x_1, _1, _2, lg2r] = ctrl_prelude();
     double mu = epsilon / lg2r;
-    double h = std::ceil(std::pow(mu,5) * (static_cast<double>(h_max) / lg2r));
+    double h = std::ceil(std::pow(mu,5) * (static_cast<double>(h_max)) / lg2r);
     double target_size = std::floor((mu * h));
 
     return {static_cast<double>(h_max)/static_cast<double>(h_min),
@@ -105,7 +107,7 @@ std::pair<Instance, Instance> Instance::split_by_height(std::size_t ceil_) {
         jobs,
         std::back_inserter(small),
         std::back_inserter(high),
-        [ceil_](const std::shared_ptr<Job>& j) { return j->size < ceil_; }
+        [ceil_](const std::shared_ptr<Job>& j) { return j->size <= ceil_; }
     );
 
     assert(small.size() + high.size() == to_split);
@@ -225,11 +227,41 @@ void Instance::merge_via_ref(Instance other) {
 
 std::tuple<double, double, double, double> Instance::ctrl_prelude() {
     auto [h_min, h_max] = min_max_height();
-    double r = static_cast<double>(h_min) / static_cast<double>(h_max);
+    // std::cerr << "ctrl_prelude_1: h_min=" << h_min << " , h_max=" << h_max << "\n";
+    double r = static_cast<double>(h_max) / static_cast<double>(h_min);
     double lgr = log2(r);
-    double lg2r = pow(r, 2);
+    double lg2r = pow(lgr, 2);
     double small_end = pow((pow(lg2r, 7) / r), 1.0/6.0);
     double mu_lim = (sqrt(5.0) - 1.0) / 2.0;
 
+    // std::cerr << "ctrl_prelude_2: r=" << r << " , lgr=" << lgr
+    //     << " , lg2r=" << lg2r << " , small_end=" << small_end << " , mu_lim=" << mu_lim << "\n";
     return {mu_lim, small_end, mu_lim * lg2r, lg2r};
+}
+
+std::size_t Instance::place(
+    const std::pair<InterferenceGraph, PlacedJobRegistry>& ig,
+    std::uint32_t iters_done,
+    std::size_t makespan_lim,
+    std::uint32_t dumb_id,
+    std::size_t start_addr)
+{
+    // Rust: let row_size = self.jobs[0].size;
+    const std::size_t row_size = jobs[0]->size;
+
+    // Rust: get_loose_placement(self.jobs, 0, UnboxCtrl::SameSizes(row_size), &ig.1, dumb_id)
+    LoosePlacement loose = get_loose_placement(
+        std::move(jobs),                                 // consume self.jobs
+        0,
+        UnboxCtrl{ unbox_ctrl::SameSizes{ row_size } },
+        ig.second,                                       // PlacedJobRegistry
+        dumb_id);
+
+    // Rust: do_best_fit(loose, &ig.0, iters_done, makespan_lim, true, start_addr)
+    return do_best_fit(std::move(loose),
+                       ig.first,                         // InterferenceGraph
+                       iters_done,
+                       makespan_lim,
+                       /*first_fit=*/true,
+                       start_addr);
 }

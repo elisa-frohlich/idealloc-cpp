@@ -39,6 +39,12 @@ struct Event {
     bool operator==(const Event& other) const {
         return time == other.time;
     }
+
+    friend std::ostream& operator<<(std::ostream& os, Event e) {
+        return os << "Event {time: " << e.time << ", type: "
+            << (e.evt_t == EventKind::Birth ? "Birth" : "Death")
+            << ", job:" << *e.job << "}";
+    }
 };
 
 /// Traversal of a JobSet can be thought as an ordered stream

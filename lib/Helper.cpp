@@ -160,6 +160,10 @@ Job IREECSVParser::gen_single(Job d, std::uint32_t id) const {
     return d;
 }
 
+T2Control::T2Control(
+        std::pair<std::size_t, std::size_t> bounding_interval,
+        std::set<std::size_t> critical_points
+) : bounding_interval(bounding_interval), critical_points(std::move(critical_points)) {}
 
 T2Control::T2Control(Instance& jobs)
     : bounding_interval(jobs.get_horizon())

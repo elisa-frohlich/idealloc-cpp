@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <iostream>
 #include <iterator>
 #include <unordered_map>
 #include "Jobset.h"
@@ -150,10 +151,13 @@ std::vector<JobSet> interval_graph_coloring(JobSet jobs) {
     Events evts = get_events(jobs);
     while (!evts.empty()) {
         Event evt = evts.top();
+        // std::cerr << evt << "\n";
         evts.pop();
         if (evt.evt_t == EventKind::Birth) {
             // Get the lowest free row.
-            std::size_t row_to_fill = *free_rows.erase(free_rows.begin());
+            std::size_t row_to_fill = *free_rows.begin();
+            free_rows.erase(free_rows.begin());
+            // std::cerr << "\tInserting event at row " << row_to_fill << "\n";
             // Update map.
             cheatsheet.emplace(evt.job->id, row_to_fill);
             
@@ -227,3 +231,8 @@ std::set<std::size_t> gap_finder(JobSet& row_jobs, std::size_t alpha, std::size_
 }
 
 } // namespace jobset
+
+std::ostream& operator<<(std::ostream& os, JobSet jobs) {
+    return os << "JobSet {max load: " << jobset::get_load(jobs) <<
+                 ", num jobs: " << jobs.size() << "}";
+}

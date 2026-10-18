@@ -16,6 +16,10 @@ add_executable(idealloc
     lib/Job.cpp
     lib/Jobset.cpp
     lib/Helper.cpp
+    lib/Analyzer.cpp
+    lib/algo/Boxing.cpp
+    lib/algo/Placement.cpp
+    lib/algo/Mod.cpp
 )
 
 # Specify include directories directly on the target

@@ -24,5 +24,7 @@ namespace jobset {
     std::set<std::size_t> gap_finder(JobSet& row_jobs, std::size_t alpha, std::size_t omega);
 }
 
+std::ostream& operator<<(std::ostream& os, JobSet jobs);
+
 
 #endif // JOBSET_H
