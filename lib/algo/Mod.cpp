@@ -179,7 +179,7 @@ idealloc(JobSet original_input,
 
                 const std::size_t num_buffers = ig_reg.second.size();
                 std::cout
-                    << "\n Buffers treated:\t" << num_buffers
+                    << "\nBuffers treated:\t" << num_buffers
                     << "\nHeights hardness:\t"
                     << (std::get<0>(hardness) * 100.0) << "%"
                     << "\nConflicts hardness:\t"

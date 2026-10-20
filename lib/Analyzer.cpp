@@ -175,7 +175,7 @@ AnalysisResult prelude_analysis(JobSet jobs, std::size_t start_addr) {
         std::numeric_limits<std::size_t>::max(),
         /*first_fit=*/true,
         start_addr);
-    std::cout << "Best-fit done.\n";
+    std::cout << "First-fit done.\n";
 
     //--- Compute epsilon, mu_lim, etc. ---
     const double r = static_cast<double>(h_max) / static_cast<double>(h_min);

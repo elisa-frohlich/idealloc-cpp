@@ -7,8 +7,8 @@ InputType parse_format(std::string_view s) {
     if (s == "ex-csv")    return InputType::ExCSV;
     if (s == "in-ex-csv") return InputType::InExCSV;
     if (s == "in-csv")    return InputType::InCSV;
-    if (s == "plc")       return InputType::PLC;
-    if (s == "trc")       return InputType::TRC;
+    // if (s == "plc")       return InputType::PLC;
+    // if (s == "trc")       return InputType::TRC;
     throw std::invalid_argument("unknown format: '" + std::string(s) + "'");
 }
 
@@ -32,7 +32,7 @@ void print_usage(const char* prog) {
         << "Options:\n"
         << "  -i, --input <PATH>    Path to input\n"
         << "  -f, --max-frag <F>    Maximum fragmentation allowed (default 1.0)\n"
-        << "  -s, --start <N>       Start address (default 0)\n"
+        // << "  -s, --start <N>       Start address (default 0)\n"
         << "  -l, --max-lives <N>   Max tries to beat bootstrap heuristic (default 1)\n"
         << "  -h, --help            Print this help\n";
 }
@@ -58,8 +58,8 @@ Args parse_args(int argc, char** argv) {
             have_input = true;
         } else if (a == "-f" || a == "--max-frag") {
             args.max_frag = std::stod(take("--max-frag"));
-        } else if (a == "-s" || a == "--start") {
-            args.start = static_cast<std::size_t>(std::stoull(take("--start")));
+        // } else if (a == "-s" || a == "--start") {
+        //     args.start = static_cast<std::size_t>(std::stoull(take("--start")));
         } else if (a == "-l" || a == "--max-lives") {
             args.max_lives = static_cast<std::uint32_t>(std::stoul(take("--max-lives")));
         } else if (a == "-h" || a == "--help") {
