@@ -91,6 +91,21 @@ public:
     std::vector<Job> read_jobs(std::size_t shift) const override;
     Job gen_single(Job d, std::uint32_t id) const override;
 };
+
+/// A helper type for parsing Rarog MLIR framework buffers into
+/// the standard minimalloc CSV format.
+class RarogBuffersParser : JobGen<const std::tuple<size_t, size_t, size_t>&> {
+public:
+    std::vector<std::tuple<size_t, size_t, size_t>> buffers;
+
+    explicit RarogBuffersParser(
+        std::vector<std::tuple<size_t, size_t, size_t>>& _buffers
+    ) : buffers(std::move(_buffers)) {}
+
+    std::vector<Job> read_jobs(std::size_t shift) const override;
+    Job gen_single(const std::tuple<size_t, size_t, size_t>& buffer, std::uint32_t id) const override;
+};
+
 //---END EXTERNAL INTERFACES
 
 struct BACtrl {

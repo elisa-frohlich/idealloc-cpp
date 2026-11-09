@@ -160,6 +160,33 @@ Job IREECSVParser::gen_single(Job d, std::uint32_t id) const {
     return d;
 }
 
+std::vector<Job> RarogBuffersParser::read_jobs(std::size_t shift) const {
+    std::vector<Job> res;
+
+    for (int i = 0; i < buffers.size(); i++) {
+        res.push_back(gen_single(buffers[i], i));
+    }
+
+    return res;
+}
+
+Job RarogBuffersParser::gen_single(
+    const std::tuple<size_t, size_t, size_t>& buffer,
+    std::uint32_t id) const
+{
+    auto [birth, death, size] = buffer;
+    return Job{
+        .size            = size,
+        .birth           = birth,
+        .death           = death+1,
+        .req_size        = size,
+        .alignment       = std::nullopt,
+        .contents        = std::nullopt,
+        .originals_boxed = 0,
+        .id              = id,
+    };
+}
+
 T2Control::T2Control(
         std::pair<std::size_t, std::size_t> bounding_interval,
         std::set<std::size_t> critical_points
